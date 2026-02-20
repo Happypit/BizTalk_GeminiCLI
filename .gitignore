@@ -16,4 +16,3 @@ __pycache__/
 
 # Node.js
 frontend/node_modules/
-frontend/css/tailwind.css
