@@ -44,8 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleLoading(true);
 
         const bodyData = JSON.stringify({ text, target });
-        console.log('Sending request to:', API_URL);
-        console.log('Request body:', bodyData);
 
         try {
             const response = await fetch(API_URL, {
@@ -78,9 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function handleCopy() {
         const resultText = convertedTextOutput.innerText;
-        const placeholder = document.querySelector('.converted-text-wrapper .placeholder');
+        const isPlaceholder = convertedTextOutput.querySelector('.placeholder');
 
-        if (!resultText || placeholder) {
+        if (!resultText || isPlaceholder) {
             showToast('복사할 내용이 없습니다.', 'error');
             return;
         }
@@ -106,57 +104,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Toggles the loading state of the convert button.
-     * @param {boolean} isLoading - Whether to show or hide the loading spinner.
      */
     function toggleLoading(isLoading) {
+        const buttonText = convertBtn.querySelector('span');
+        const buttonIcon = convertBtn.querySelector('svg');
+        const spinner = convertBtn.querySelector('.animate-spin');
+
         if (isLoading) {
-            convertBtn.classList.add('loading');
             convertBtn.disabled = true;
+            convertBtn.classList.add('opacity-80', 'cursor-not-allowed');
+            if (buttonText) buttonText.classList.add('hidden');
+            if (buttonIcon) buttonIcon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
         } else {
-            convertBtn.classList.remove('loading');
             convertBtn.disabled = false;
+            convertBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+            if (buttonText) buttonText.classList.remove('hidden');
+            if (buttonIcon) buttonIcon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
         }
     }
     
     /**
      * Displays the converted text in the output area.
-     * @param {string} convertedText - The text to display.
      */
     function updateResult(convertedText) {
         convertedTextOutput.innerHTML = ''; // Clear previous content
         const p = document.createElement('p');
+        p.className = 'text-slate-700 leading-relaxed whitespace-pre-wrap';
         p.textContent = convertedText;
         convertedTextOutput.appendChild(p);
     }
     
     /**
      * Displays an error message in the output area.
-     * @param {string} message - The error message to display.
      */
     function displayError(message) {
-        convertedTextOutput.innerHTML = ''; // Clear previous content
-        const p = document.createElement('p');
-        p.className = 'placeholder';
-        p.style.color = 'var(--error-color)';
-        p.textContent = message;
-        convertedTextOutput.appendChild(p);
+        convertedTextOutput.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-red-400 gap-3">
+                <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="placeholder text-sm font-medium">${message}</p>
+            </div>
+        `;
     }
 
     /**
      * Shows a toast notification.
-     * @param {string} message - The message to display.
-     * @param {string} type - 'success' or 'error' for styling.
      */
     function showToast(message, type = '') {
-        toast.textContent = message;
-        toast.className = 'toast-notification'; // Reset classes
-        if (type) {
-            toast.classList.add(type);
+        const messageEl = toast.querySelector('.toast-message');
+        const iconEl = toast.querySelector('.toast-icon');
+        
+        messageEl.textContent = message;
+        
+        // Reset classes
+        toast.className = 'fixed bottom-8 left-1/2 transform -translate-x-1/2 translate-y-20 px-6 py-3 rounded-xl shadow-2xl text-sm font-medium opacity-0 invisible transition-all duration-500 ease-out z-50 flex items-center gap-2';
+        iconEl.innerHTML = '';
+
+        if (type === 'success') {
+            toast.classList.add('bg-emerald-600', 'text-white');
+            iconEl.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        } else if (type === 'error') {
+            toast.classList.add('bg-rose-600', 'text-white');
+            iconEl.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        } else {
+            toast.classList.add('bg-slate-900', 'text-white');
         }
-        toast.classList.add('show');
+        
+        // Show
+        toast.classList.remove('opacity-0', 'invisible', 'translate-y-20');
+        toast.classList.add('opacity-100', 'visible', 'translate-y-0');
 
         setTimeout(() => {
-            toast.classList.remove('show');
+            // Hide
+            toast.classList.remove('opacity-100', 'visible', 'translate-y-0');
+            toast.classList.add('opacity-0', 'invisible', 'translate-y-20');
         }, 3000);
     }
 });
