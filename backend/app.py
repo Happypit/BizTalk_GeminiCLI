@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 # from groq import Groq
@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend', static_url_path='/')
 # Apply CORS to the entire app, allowing requests from any origin
 CORS(app)
 
@@ -17,9 +17,12 @@ CORS(app)
 # )
 
 @app.route("/")
-def index():
-    # A simple health check or welcome page
-    return "Welcome to the BizTone Converter API!"
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route("/<path:filename>")
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
 @app.route("/api/convert", methods=["POST"])
 def convert_tone():
